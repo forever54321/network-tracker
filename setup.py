@@ -34,7 +34,7 @@ def load_config() -> dict:
         "db_host": "localhost",
         "db_port": "5432",
         "db_name": "tracking",
-        "db_user": "tracking",
+        "db_user": "postgres",
         "db_password": "",
         "backend_port": "8000",
         "frontend_port": "3000",
@@ -256,17 +256,37 @@ class SetupApp:
                 self._log(f"UniFi: Connection error - {e}")
                 self.status_var.set("UniFi connection failed")
 
-            # Test DB
+            # Test DB — connect to 'postgres' first, auto-create target DB if needed
             try:
                 import psycopg2
-                conn = psycopg2.connect(
-                    host=cfg["db_host"], port=int(cfg["db_port"]),
-                    dbname=cfg["db_name"], user=cfg["db_user"],
-                    password=cfg["db_password"], connect_timeout=5,
-                )
-                conn.close()
-                self._log("Database: Connected successfully!")
-                self.status_var.set("All connections OK")
+                # First try connecting to the target database
+                try:
+                    conn = psycopg2.connect(
+                        host=cfg["db_host"], port=int(cfg["db_port"]),
+                        dbname=cfg["db_name"], user=cfg["db_user"],
+                        password=cfg["db_password"], connect_timeout=5,
+                    )
+                    conn.close()
+                    self._log(f"Database: Connected to '{cfg['db_name']}' successfully!")
+                    self.status_var.set("All connections OK")
+                except psycopg2.OperationalError as db_err:
+                    if "does not exist" in str(db_err):
+                        # Database doesn't exist — create it
+                        self._log(f"Database '{cfg['db_name']}' not found, creating it...")
+                        conn = psycopg2.connect(
+                            host=cfg["db_host"], port=int(cfg["db_port"]),
+                            dbname="postgres", user=cfg["db_user"],
+                            password=cfg["db_password"], connect_timeout=5,
+                        )
+                        conn.autocommit = True
+                        cur = conn.cursor()
+                        cur.execute(f'CREATE DATABASE "{cfg["db_name"]}"')
+                        cur.close()
+                        conn.close()
+                        self._log(f"Database '{cfg['db_name']}' created successfully!")
+                        self.status_var.set("All connections OK — database created")
+                    else:
+                        raise db_err
             except Exception as e:
                 self._log(f"Database: Connection error - {e}")
                 self.status_var.set("Database connection failed")
