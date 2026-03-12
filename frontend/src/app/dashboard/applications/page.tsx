@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AppBreakdownChart } from "@/components/charts/AppBreakdownChart";
 import { AppIcon } from "@/components/ui/AppIcon";
 import { useApplications, useApplicationHistory, AppListItem } from "@/hooks/useTraffic";
-import { formatBytes, formatDuration } from "@/lib/utils";
+import { formatBytes } from "@/lib/utils";
+import { ChevronDown, PieChart, List } from "lucide-react";
 
 const CATEGORY_COLORS: Record<string, string> = {
   streaming: "bg-pink-500",
@@ -25,17 +25,17 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const CATEGORY_BADGE: Record<string, string> = {
-  streaming: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
-  social: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  messaging: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  conferencing: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
-  music: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-  productivity: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  cloud: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
-  gaming: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  shopping: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  developer: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-  smart_home: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
+  streaming: "bg-pink-50 text-pink-700 ring-1 ring-pink-600/10 dark:bg-pink-500/10 dark:text-pink-400 dark:ring-pink-500/20",
+  social: "bg-blue-50 text-blue-700 ring-1 ring-blue-600/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20",
+  messaging: "bg-green-50 text-green-700 ring-1 ring-green-600/10 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20",
+  conferencing: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600/10 dark:bg-indigo-500/10 dark:text-indigo-400 dark:ring-indigo-500/20",
+  music: "bg-purple-50 text-purple-700 ring-1 ring-purple-600/10 dark:bg-purple-500/10 dark:text-purple-400 dark:ring-purple-500/20",
+  productivity: "bg-amber-50 text-amber-700 ring-1 ring-amber-600/10 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20",
+  cloud: "bg-sky-50 text-sky-700 ring-1 ring-sky-600/10 dark:bg-sky-500/10 dark:text-sky-400 dark:ring-sky-500/20",
+  gaming: "bg-red-50 text-red-700 ring-1 ring-red-600/10 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20",
+  shopping: "bg-orange-50 text-orange-700 ring-1 ring-orange-600/10 dark:bg-orange-500/10 dark:text-orange-400 dark:ring-orange-500/20",
+  developer: "bg-gray-50 text-gray-700 ring-1 ring-gray-500/10 dark:bg-white/[0.04] dark:text-gray-400 dark:ring-white/[0.08]",
+  smart_home: "bg-teal-50 text-teal-700 ring-1 ring-teal-600/10 dark:bg-teal-500/10 dark:text-teal-400 dark:ring-teal-500/20",
 };
 
 function AppHistoryPanel({ appId, hours }: { appId: string; hours: number }) {
@@ -43,9 +43,9 @@ function AppHistoryPanel({ appId, hours }: { appId: string; hours: number }) {
 
   if (isLoading) {
     return (
-      <div className="space-y-3 p-4">
+      <div className="space-y-3 p-5">
         <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full rounded-xl" />
       </div>
     );
   }
@@ -55,27 +55,25 @@ function AppHistoryPanel({ appId, hours }: { appId: string; hours: number }) {
   const maxQ = data.devices[0]?.query_count || 1;
 
   return (
-    <div className="space-y-4 border-t border-gray-100 p-4 dark:border-gray-800">
+    <div className="animate-fade-in space-y-5 border-t border-gray-100 p-5 dark:border-white/[0.04]">
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Total Queries</p>
-          <p className="text-lg font-bold text-gray-900 dark:text-white">{data.total_queries}</p>
-        </div>
-        <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Devices</p>
-          <p className="text-lg font-bold text-gray-900 dark:text-white">{data.total_devices}</p>
-        </div>
-        <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Domains</p>
-          <p className="text-lg font-bold text-gray-900 dark:text-white">{data.domains.length}</p>
-        </div>
+        {[
+          { label: "Total Queries", value: data.total_queries },
+          { label: "Devices", value: data.total_devices },
+          { label: "Domains", value: data.domains.length },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-xl bg-gray-50 p-3 dark:bg-white/[0.03]">
+            <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-white">{stat.value}</p>
+          </div>
+        ))}
       </div>
 
       {/* Activity Timeline */}
       {data.timeline.length > 0 && (
         <div>
-          <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Activity Timeline</h4>
+          <h4 className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Activity</h4>
           <div className="flex items-end gap-0.5" style={{ height: 48 }}>
             {data.timeline.map((pt, i) => {
               const maxCount = Math.max(...data.timeline.map((t) => t.query_count), 1);
@@ -84,7 +82,7 @@ function AppHistoryPanel({ appId, hours }: { appId: string; hours: number }) {
               return (
                 <div
                   key={i}
-                  className="group relative flex-1 cursor-default rounded-t bg-primary-500 transition-colors hover:bg-primary-400"
+                  className="group relative flex-1 cursor-default rounded-t-sm bg-primary-500/80 transition-all hover:bg-primary-400"
                   style={{ height: `${h}%` }}
                   title={`${time.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}: ${pt.query_count} queries, ${pt.device_count} devices`}
                 />
@@ -98,34 +96,36 @@ function AppHistoryPanel({ appId, hours }: { appId: string; hours: number }) {
         </div>
       )}
 
-      {/* Devices using this app */}
+      {/* Devices */}
       <div>
-        <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <h4 className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
           Devices ({data.devices.length})
         </h4>
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {data.devices.map((dev) => (
             <Link
               key={dev.id}
               href={`/dashboard/devices/${dev.id}`}
-              className="flex items-center gap-2 rounded-lg p-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              className="flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.03]"
             >
-              <div className={`h-2 w-2 shrink-0 rounded-full ${dev.is_online ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"}`} />
+              <div className="relative flex h-2 w-2 shrink-0">
+                {dev.is_online && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />}
+                <span className={`relative inline-flex h-2 w-2 rounded-full ${dev.is_online ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"}`} />
+              </div>
               <div className="min-w-0 flex-1">
                 <span className="text-sm font-medium text-gray-900 dark:text-white">{dev.name}</span>
-                <span className="ml-2 text-xs text-gray-400">{dev.ip_address}</span>
+                <span className="ml-2 font-mono text-[11px] text-gray-400">{dev.ip_address}</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-gray-500">
-                {/* Progress bar */}
                 <div className="hidden w-20 sm:block">
-                  <div className="h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.04]">
                     <div
                       className="h-full rounded-full bg-primary-500"
                       style={{ width: `${(dev.query_count / maxQ) * 100}%` }}
                     />
                   </div>
                 </div>
-                <span className="font-medium">{dev.query_count}</span>
+                <span className="font-semibold">{dev.query_count}</span>
               </div>
             </Link>
           ))}
@@ -135,17 +135,17 @@ function AppHistoryPanel({ appId, hours }: { appId: string; hours: number }) {
       {/* Domains */}
       {data.domains.length > 0 && (
         <div>
-          <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          <h4 className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
             Domains ({data.domains.length})
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {data.domains.map((d) => (
               <span
                 key={d.domain}
-                className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-gray-50 px-2.5 py-1 text-[11px] text-gray-600 ring-1 ring-gray-200/60 dark:bg-white/[0.03] dark:text-gray-400 dark:ring-white/[0.06]"
               >
                 <span className="font-mono">{d.domain}</span>
-                <span className="font-semibold text-gray-800 dark:text-gray-200">{d.count}</span>
+                <span className="font-bold text-gray-800 dark:text-gray-200">{d.count}</span>
               </span>
             ))}
           </div>
@@ -163,7 +163,6 @@ export default function ApplicationsPage() {
 
   const hoursFromDays = days * 24;
 
-  // For the chart, map to the expected format
   const chartApps = applications.map((a) => ({
     application: a.application,
     total_time_seconds: a.total_time_seconds,
@@ -177,24 +176,23 @@ export default function ApplicationsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-          Application Usage
-        </h2>
-        <div className="flex gap-1">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Applications</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {applications.length} applications detected
+          </p>
+        </div>
+        <div className="flex gap-0.5 rounded-xl bg-gray-100 p-1 dark:bg-white/[0.04]">
           {[
             { label: "Today", value: 1 },
-            { label: "7d", value: 7 },
-            { label: "30d", value: 30 },
-            { label: "90d", value: 90 },
+            { label: "7 days", value: 7 },
+            { label: "30 days", value: 30 },
+            { label: "90 days", value: 90 },
           ].map((opt) => (
             <button
               key={opt.value}
               onClick={() => setDays(opt.value)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                days === opt.value
-                  ? "bg-primary-600 text-white"
-                  : "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-              }`}
+              className={`time-pill ${days === opt.value ? "time-pill-active" : "time-pill-inactive"}`}
             >
               {opt.label}
             </button>
@@ -202,14 +200,17 @@ export default function ApplicationsPage() {
         </div>
       </div>
 
-      {/* Chart + Summary */}
+      {/* Chart + List */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Distribution</CardTitle>
+            <div className="flex items-center gap-2">
+              <PieChart className="h-4 w-4 text-gray-400" />
+              <CardTitle>Distribution</CardTitle>
+            </div>
           </CardHeader>
           {isLoading ? (
-            <Skeleton className="h-72 w-full" />
+            <Skeleton className="h-72 w-full rounded-xl" />
           ) : chartApps.length > 0 ? (
             <AppBreakdownChart applications={chartApps} />
           ) : (
@@ -221,20 +222,16 @@ export default function ApplicationsPage() {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>
-              All Applications
-              {applications.length > 0 && (
-                <span className="ml-2 text-sm font-normal text-gray-400">
-                  ({applications.length} detected)
-                </span>
-              )}
-            </CardTitle>
+            <div className="flex items-center gap-2">
+              <List className="h-4 w-4 text-gray-400" />
+              <CardTitle>All Applications</CardTitle>
+            </div>
           </CardHeader>
 
           {isLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-14 w-full" />
+                <Skeleton key={i} className="h-14 w-full rounded-xl" />
               ))}
             </div>
           ) : applications.length === 0 ? (
@@ -242,46 +239,43 @@ export default function ApplicationsPage() {
               No applications detected yet. Apps appear as DNS queries are captured.
             </p>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {applications.map((app) => {
                 const isExpanded = expandedApp === app.application.id;
                 const catColor = CATEGORY_COLORS[app.application.category || ""] || "bg-gray-500";
-                const catBadge = CATEGORY_BADGE[app.application.category || ""] || "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+                const catBadge = CATEGORY_BADGE[app.application.category || ""] || "bg-gray-50 text-gray-600 ring-1 ring-gray-500/10 dark:bg-white/[0.04] dark:text-gray-400 dark:ring-white/[0.08]";
 
                 return (
                   <div
                     key={app.application.id}
-                    className={`overflow-hidden rounded-xl border transition-colors ${
+                    className={`overflow-hidden rounded-xl border transition-all duration-200 ${
                       isExpanded
-                        ? "border-primary-200 bg-white dark:border-primary-800 dark:bg-gray-900"
-                        : "border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900"
-                    }`}
+                        ? "border-primary-200 shadow-glow dark:border-primary-500/20"
+                        : "border-gray-100 hover:border-gray-200 dark:border-white/[0.04] dark:hover:border-white/[0.08]"
+                    } bg-white dark:bg-surface-900/80`}
                   >
                     <button
                       onClick={() => setExpandedApp(isExpanded ? null : app.application.id)}
-                      className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      className="flex w-full items-center gap-3 p-3.5 text-left transition-colors"
                     >
-                      {/* App icon */}
                       <AppIcon name={app.application.name} category={app.application.category} size="md" />
 
-                      {/* Name + category */}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-gray-900 dark:text-white">
                             {app.application.name}
                           </span>
                           {app.application.category && (
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${catBadge}`}>
+                            <span className={`rounded-lg px-2 py-0.5 text-[11px] font-semibold ${catBadge}`}>
                               {app.application.category}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Stats */}
                       <div className="flex items-center gap-4 text-sm">
-                        <div className="hidden items-center gap-1 sm:flex">
-                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                        <div className="hidden items-center gap-1.5 sm:flex">
+                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.04]">
                             <div
                               className={`h-full rounded-full ${catColor}`}
                               style={{ width: `${(app.query_count / maxQueries) * 100}%` }}
@@ -290,21 +284,18 @@ export default function ApplicationsPage() {
                         </div>
                         <div className="text-right">
                           <span className="font-bold text-gray-900 dark:text-white">{app.query_count}</span>
-                          <span className="ml-1 text-xs text-gray-400">queries</span>
+                          <span className="ml-1 text-[11px] text-gray-400">queries</span>
                         </div>
-                        <div className="text-right text-xs text-gray-500">
+                        <div className="text-right text-[11px] text-gray-500">
                           <span>{app.device_count} device{app.device_count !== 1 ? "s" : ""}</span>
                         </div>
-                        <svg
-                          className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                          fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronDown
+                          className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                          strokeWidth={2}
+                        />
                       </div>
                     </button>
 
-                    {/* Expanded history panel */}
                     {isExpanded && (
                       <AppHistoryPanel appId={app.application.id} hours={hoursFromDays} />
                     )}

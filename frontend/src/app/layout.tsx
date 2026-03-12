@@ -4,11 +4,15 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
-  title: "NetMonitor - Network Device & Application Usage",
-  description: "Monitor network devices, sessions, and application usage",
+  title: "NetMonitor - Network Intelligence Dashboard",
+  description: "Real-time network device and application usage monitoring",
 };
 
 export default function RootLayout({
@@ -17,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body className={inter.className}>
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>

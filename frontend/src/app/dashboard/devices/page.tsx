@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useDevicesByUsage } from "@/hooks/useDashboard";
 import { useDevices } from "@/hooks/useDevices";
 import { formatBytes, formatDuration, formatDateTime } from "@/lib/utils";
+import { Search, BarChart3, List } from "lucide-react";
 
 export default function DevicesPage() {
   const [search, setSearch] = useState("");
@@ -15,9 +16,7 @@ export default function DevicesPage() {
   const [hours, setHours] = useState(24);
   const [view, setView] = useState<"usage" | "all">("usage");
 
-  // Usage view
   const { data: usageData, isLoading: usageLoading } = useDevicesByUsage(hours);
-  // All devices view
   const { data: allDevices, isLoading: allLoading } = useDevices(1, search, onlineOnly);
 
   const filteredUsage = usageData?.filter((item) => {
@@ -38,44 +37,46 @@ export default function DevicesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Devices</h2>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Devices</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {view === "usage" ? "Ranked by usage time" : "All network devices"}
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
-          <input
-            type="text"
-            placeholder="Search by name, IP, MAC..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-64 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          />
-          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" strokeWidth={1.8} />
+            <input
+              type="text"
+              placeholder="Search devices..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input-field w-64 pl-9"
+            />
+          </div>
+          <label className="flex cursor-pointer items-center gap-2 text-[13px] text-gray-500 dark:text-gray-400">
             <input
               type="checkbox"
               checked={onlineOnly}
               onChange={(e) => setOnlineOnly(e.target.checked)}
-              className="rounded"
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600"
             />
             Online only
           </label>
-          <div className="flex rounded-lg border border-gray-300 dark:border-gray-700">
+          <div className="flex rounded-xl bg-gray-100 p-1 dark:bg-white/[0.04]">
             <button
               onClick={() => setView("usage")}
-              className={`px-3 py-1.5 text-xs font-medium ${
-                view === "usage"
-                  ? "bg-primary-600 text-white"
-                  : "text-gray-500 dark:text-gray-400"
-              } rounded-l-lg`}
+              className={`flex items-center gap-1.5 time-pill ${view === "usage" ? "time-pill-active" : "time-pill-inactive"}`}
             >
-              By Usage
+              <BarChart3 className="h-3.5 w-3.5" />
+              Usage
             </button>
             <button
               onClick={() => setView("all")}
-              className={`px-3 py-1.5 text-xs font-medium ${
-                view === "all"
-                  ? "bg-primary-600 text-white"
-                  : "text-gray-500 dark:text-gray-400"
-              } rounded-r-lg`}
+              className={`flex items-center gap-1.5 time-pill ${view === "all" ? "time-pill-active" : "time-pill-inactive"}`}
             >
-              All Devices
+              <List className="h-3.5 w-3.5" />
+              All
             </button>
           </div>
         </div>
@@ -83,7 +84,7 @@ export default function DevicesPage() {
 
       {/* Time range for usage view */}
       {view === "usage" && (
-        <div className="flex gap-2">
+        <div className="flex gap-0.5 rounded-xl bg-gray-100 p-1 w-fit dark:bg-white/[0.04]">
           {[
             { label: "Last hour", value: 1 },
             { label: "Last 6h", value: 6 },
@@ -94,11 +95,7 @@ export default function DevicesPage() {
             <button
               key={opt.value}
               onClick={() => setHours(opt.value)}
-              className={`rounded-lg px-3 py-1.5 text-sm ${
-                hours === opt.value
-                  ? "bg-primary-600 text-white"
-                  : "border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
-              }`}
+              className={`time-pill ${hours === opt.value ? "time-pill-active" : "time-pill-inactive"}`}
             >
               {opt.label}
             </button>
@@ -110,11 +107,10 @@ export default function DevicesPage() {
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+            <Skeleton key={i} className="h-20 w-full rounded-2xl" />
           ))}
         </div>
       ) : view === "usage" ? (
-        /* Usage ranked view */
         <div className="space-y-2">
           {filteredUsage && filteredUsage.length > 0 ? (
             filteredUsage.map((item, i) => {
@@ -128,43 +124,43 @@ export default function DevicesPage() {
                 <Link
                   key={d.id}
                   href={`/dashboard/devices/${d.id}`}
-                  className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700"
+                  className="group flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5 dark:border-white/[0.06] dark:bg-surface-900/80 dark:hover:shadow-card-dark-hover"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-50 text-sm font-bold text-primary-600 dark:bg-primary-900/30 dark:text-primary-400">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500/10 to-primary-600/5 text-sm font-bold text-primary-600 dark:from-primary-500/15 dark:to-primary-600/5 dark:text-primary-400">
                     {i + 1}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                      <span className="truncate text-sm font-semibold text-gray-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400 transition-colors">
                         {name}
                       </span>
                       <Badge variant={d.is_online ? "success" : "danger"}>
                         {d.is_online ? "Online" : "Offline"}
                       </Badge>
                       {d.device_type && (
-                        <span className="text-xs text-gray-400">{d.device_type}</span>
+                        <span className="text-[11px] text-gray-400">{d.device_type}</span>
                       )}
                     </div>
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+                    <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.04]">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-400 transition-all"
+                        className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-400 transition-all duration-500"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <div className="mt-1 flex gap-3 text-xs text-gray-400 dark:text-gray-500">
-                      <span>{d.ip_address || "No IP"}</span>
+                    <div className="mt-1.5 flex gap-3 text-[11px] text-gray-400 dark:text-gray-500">
+                      <span className="font-mono">{d.ip_address || "No IP"}</span>
                       <span>{d.connection_type || "unknown"}</span>
                       {d.vendor && <span>{d.vendor}</span>}
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                       {formatDuration(item.total_time_seconds)}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
                       {formatBytes(totalBytes)} total
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-[11px] text-gray-400">
                       {formatBytes(item.total_bytes_sent)} up / {formatBytes(item.total_bytes_received)} down
                     </p>
                   </div>
@@ -180,47 +176,46 @@ export default function DevicesPage() {
           )}
         </div>
       ) : (
-        /* All devices table view */
-        <Card>
+        <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                  <th className="pb-3 pr-4 font-medium">Device</th>
-                  <th className="pb-3 pr-4 font-medium">IP Address</th>
-                  <th className="pb-3 pr-4 font-medium">MAC</th>
-                  <th className="pb-3 pr-4 font-medium">Connection</th>
-                  <th className="pb-3 pr-4 font-medium">Status</th>
-                  <th className="pb-3 font-medium">Last Seen</th>
+                <tr className="border-b border-gray-100 dark:border-white/[0.06]">
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Device</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">IP Address</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">MAC</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Connection</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Last Seen</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
                 {allDevices?.devices.map((d) => (
-                  <tr key={d.id} className="border-b border-gray-100 dark:border-gray-800/50">
-                    <td className="py-3 pr-4">
+                  <tr key={d.id} className="transition-colors hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+                    <td className="px-6 py-4">
                       <Link
                         href={`/dashboard/devices/${d.id}`}
-                        className="font-medium text-gray-900 hover:text-primary-600 dark:text-white"
+                        className="font-medium text-gray-900 transition-colors hover:text-primary-600 dark:text-white dark:hover:text-primary-400"
                       >
                         {d.friendly_name || d.hostname || d.mac_address}
                       </Link>
-                      {d.vendor && <p className="text-xs text-gray-400">{d.vendor}</p>}
+                      {d.vendor && <p className="mt-0.5 text-[11px] text-gray-400">{d.vendor}</p>}
                     </td>
-                    <td className="py-3 pr-4 font-mono text-xs text-gray-600 dark:text-gray-300">
+                    <td className="px-6 py-4 font-mono text-xs text-gray-600 dark:text-gray-300">
                       {d.ip_address || "-"}
                     </td>
-                    <td className="py-3 pr-4 font-mono text-xs text-gray-400">{d.mac_address}</td>
-                    <td className="py-3 pr-4">
+                    <td className="px-6 py-4 font-mono text-[11px] text-gray-400">{d.mac_address}</td>
+                    <td className="px-6 py-4">
                       <Badge variant={d.connection_type === "wifi" ? "info" : "default"}>
                         {d.connection_type || "?"}
                       </Badge>
                     </td>
-                    <td className="py-3 pr-4">
+                    <td className="px-6 py-4">
                       <Badge variant={d.is_online ? "success" : "danger"}>
                         {d.is_online ? "Online" : "Offline"}
                       </Badge>
                     </td>
-                    <td className="py-3 text-xs text-gray-400">{formatDateTime(d.last_seen)}</td>
+                    <td className="px-6 py-4 text-[11px] text-gray-400">{formatDateTime(d.last_seen)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -32,18 +32,26 @@ export function BandwidthChart({ points }: BandwidthChartProps) {
       {
         label: "Download",
         data: points.map((p) => p.bytes_received),
-        borderColor: "rgb(59, 130, 246)",
-        backgroundColor: "rgba(59, 130, 246, 0.1)",
+        borderColor: "rgb(99, 102, 241)",
+        backgroundColor: "rgba(99, 102, 241, 0.08)",
         fill: true,
         tension: 0.4,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: "rgb(99, 102, 241)",
       },
       {
         label: "Upload",
         data: points.map((p) => p.bytes_sent),
         borderColor: "rgb(168, 85, 247)",
-        backgroundColor: "rgba(168, 85, 247, 0.1)",
+        backgroundColor: "rgba(168, 85, 247, 0.05)",
         fill: true,
         tension: 0.4,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: "rgb(168, 85, 247)",
       },
     ],
   };
@@ -51,19 +59,47 @@ export function BandwidthChart({ points }: BandwidthChartProps) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: "index" as const,
+      intersect: false,
+    },
     plugins: {
-      legend: { position: "top" as const },
+      legend: {
+        position: "top" as const,
+        labels: {
+          usePointStyle: true,
+          pointStyle: "circle",
+          padding: 20,
+          font: { size: 12, family: "Inter" },
+        },
+      },
       tooltip: {
+        backgroundColor: "rgba(15, 23, 42, 0.9)",
+        titleFont: { size: 12, family: "Inter" },
+        bodyFont: { size: 12, family: "Inter" },
+        padding: 12,
+        cornerRadius: 12,
+        displayColors: true,
+        usePointStyle: true,
         callbacks: {
           label: (ctx: any) => `${ctx.dataset.label}: ${formatBytes(ctx.raw)}`,
         },
       },
     },
     scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 11, family: "Inter" }, color: "#94a3b8", maxTicksLimit: 8 },
+        border: { display: false },
+      },
       y: {
+        grid: { color: "rgba(148, 163, 184, 0.08)" },
         ticks: {
           callback: (value: any) => formatBytes(value),
+          font: { size: 11, family: "Inter" },
+          color: "#94a3b8",
         },
+        border: { display: false },
       },
     },
   };
